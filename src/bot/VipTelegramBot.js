@@ -2,14 +2,14 @@
 
 class VipTelegramBot {
   #bot;
-
   #onboardingService;
-
+  #guestMenuService;
   #adminId;
 
-  constructor(token, onboardingService, adminId) {
+  constructor(token, onboardingService, guestMenuService, adminId) {
     this.#bot = new TelegramBot(token, { polling: true });
     this.#onboardingService = onboardingService;
+    this.#guestMenuService = guestMenuService;
     this.#adminId = adminId;
   }
 
@@ -27,7 +27,14 @@ class VipTelegramBot {
     if (!msg.text || msg.text.startsWith('/')) return;
     const result = this.#onboardingService.handleOnboardingReply(msg.chat.id, msg.text);
     for (const text of result.messages) await this.#sendFormattedMessage(msg.chat.id, text);
-    if (result.completedProfile) await this.#notifyAdminAboutRegistration(msg.chat.id, result.completedProfile);
+    if (!result.completedProfile) return;
+    await this.#notifyAdminAboutRegistration(msg.chat.id, result.completedProfile);
+    await this.#sendGuestMenu(msg.chat.id, result.completedProfile);
+  }
+
+  async #sendGuestMenu(chatId, profile) {
+    const offer = this.#guestMenuService.buildCharityMerchOffer(profile);
+    await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup });
   }
 
   async #notifyAdminAboutRegistration(chatId, profile) {
