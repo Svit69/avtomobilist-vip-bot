@@ -41,7 +41,7 @@ class UserOnboardingService {
     const loungeValidation = this.#loungeValidationService.validateAndNormalizeLounge(rawLounge);
     if (loungeValidation.error) return { messages: [loungeValidation.error] };
     this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge: loungeValidation.value });
-    return { messages: [`Принято! ${this.#formatter.formatBold(name)}, ложа: ${this.#formatter.formatBold(loungeValidation.value)}.`], completedProfile: { name, lounge: loungeValidation.value } };
+    return { messages: [], completedProfile: { name, lounge: loungeValidation.value } };
   }
 }
 

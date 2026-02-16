@@ -15,7 +15,7 @@ const formatter = new TelegramHtmlFormatter();
 const namePolicyService = new NameContentPolicyService();
 const loungeValidationService = new LoungeFormatValidationService();
 const onboardingService = new UserOnboardingService(storage, formatter, namePolicyService, loungeValidationService);
-const guestMenuService = new VipGuestMenuService();
+const guestMenuService = new VipGuestMenuService(formatter);
 const bot = new VipTelegramBot(config.getBotToken(), onboardingService, guestMenuService, config.getAdminId());
 
 bot.startPolling();
