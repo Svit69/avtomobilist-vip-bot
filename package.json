@@ -1,0 +1,14 @@
+﻿{
+  "name": "avtomobilist-vip-bot",
+  "version": "1.0.0",
+  "description": "VIP onboarding Telegram bot for HC Avtomobilist",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
