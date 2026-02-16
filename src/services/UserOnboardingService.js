@@ -34,7 +34,7 @@ class UserOnboardingService {
     if (validationError) return { messages: [validationError, `${this.#formatter.formatBold('Как вас зовут')}?`] };
     const name = rawName.trim();
     this.#storage.saveByChatId(chatId, { step: states.WAITING_LOUNGE, name });
-    return { messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады видеть вас в VIP.`, 'Подскажите, пожалуйста, номер VIP-ложи\n(формат: 1-44 или VIP 1-44, например: 3 или VIP 3).'] };
+    return { messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады видеть вас в VIP.`, 'Введите номер вашей VIP-ложи:\n• просто цифру от 1 до 44 (например: 3)\n• или в формате VIP 3'] };
   }
 
   #handleLoungeStep(chatId, rawLounge, name) {
