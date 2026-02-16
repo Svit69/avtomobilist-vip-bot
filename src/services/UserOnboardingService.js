@@ -5,18 +5,20 @@ class UserOnboardingService {
 
   #formatter;
 
-  constructor(storage, formatter) {
+  #namePolicyService;
+
+  #loungeValidationService;
+
+  constructor(storage, formatter, namePolicyService, loungeValidationService) {
     this.#storage = storage;
     this.#formatter = formatter;
+    this.#namePolicyService = namePolicyService;
+    this.#loungeValidationService = loungeValidationService;
   }
 
   beginOnboardingForChat(chatId) {
     this.#storage.saveByChatId(chatId, { step: states.WAITING_NAME });
-    return [
-      'Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒',
-      'Помогу с сервисом в ложу, мерчем и всем, что нужно по матчу «Автомобилист» vs «Адмирал».',
-      `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`
-    ];
+    return ['Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒', 'Помогу с сервисом в ложу, мерчем и всем, что нужно по матчу «Автомобилист» vs «Адмирал».', `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`];
   }
 
   handleOnboardingReply(chatId, inputText) {
@@ -28,17 +30,18 @@ class UserOnboardingService {
   }
 
   #handleNameStep(chatId, rawName) {
+    const validationError = this.#namePolicyService.validateGuestName(rawName);
+    if (validationError) return { messages: [validationError, `${this.#formatter.formatBold('Как вас зовут')}?`] };
     const name = rawName.trim();
     this.#storage.saveByChatId(chatId, { step: states.WAITING_LOUNGE, name });
-    return {
-      messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады видеть вас в VIP.`, 'Подскажите, пожалуйста, номер или название вашей ложи\n(например: 3, VIP 3, A12).']
-    };
+    return { messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады видеть вас в VIP.`, 'Подскажите, пожалуйста, номер VIP-ложи\n(формат: 1-44 или VIP 1-44, например: 3 или VIP 3).'] };
   }
 
   #handleLoungeStep(chatId, rawLounge, name) {
-    const lounge = rawLounge.trim();
-    this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge });
-    return { messages: [`Принято! ${this.#formatter.formatBold(name)}, ложа: ${this.#formatter.formatBold(lounge)}.`], completedProfile: { name, lounge } };
+    const loungeValidation = this.#loungeValidationService.validateAndNormalizeLounge(rawLounge);
+    if (loungeValidation.error) return { messages: [loungeValidation.error] };
+    this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge: loungeValidation.value });
+    return { messages: [`Принято! ${this.#formatter.formatBold(name)}, ложа: ${this.#formatter.formatBold(loungeValidation.value)}.`], completedProfile: { name, lounge: loungeValidation.value } };
   }
 }
 
