@@ -9,6 +9,10 @@
     this.#repository.saveOrUpdateGuest(chatId, profile);
   }
 
+  saveOrderedProduct(chatId, orderedProduct) {
+    this.#repository.saveOrderedProduct(chatId, orderedProduct);
+  }
+
   buildAdminGuestsReport() {
     const guests = this.#repository.getAllGuests();
     if (!guests.length) return 'Пока нет зарегистрированных пользователей.';

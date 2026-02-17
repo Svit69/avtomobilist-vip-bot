@@ -10,7 +10,7 @@
     const guestName = this.#formatter.formatBold(profile.name);
     const vipLounge = this.#formatter.formatBold(`VIP-${loungeNumber}`);
     const text = `Рады видеть вас на матче, ${guestName}, ложа ${vipLounge}!\n\nСегодняшняя игра — благотворительная 🎗\nВместе с фондом мы поддерживаем детей, которые борются с онкологией.\n\nДля гостей VIP мы подготовили лимитированную коллекцию матча — часть средств с каждой покупки направляется на помощь детям.\n\nЧто хотите посмотреть? 👇`;
-    return { text, replyMarkup: { keyboard: [[{ text: 'Благотворительный мерч' }, { text: 'Покупки' }]], resize_keyboard: true, is_persistent: true } };
+    return { text, replyMarkup: { keyboard: [[{ text: 'Благотворительный мерч' }, { text: 'Покупки' }], [{ text: '/admin' }]], resize_keyboard: true, is_persistent: true } };
   }
 
   #extractLoungeNumber(rawLounge) {

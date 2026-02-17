@@ -14,6 +14,14 @@
     this.#repository.writeAll(items);
   }
 
+  saveOrderedProduct(chatId, orderedProduct) {
+    const items = this.#repository.readAll();
+    const index = items.findIndex(item => item.chatId === chatId);
+    if (index < 0) return;
+    items[index] = { ...items[index], orderedProduct };
+    this.#repository.writeAll(items);
+  }
+
   getAllGuests() {
     return this.#repository.readAll();
   }

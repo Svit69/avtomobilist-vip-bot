@@ -36,7 +36,7 @@ const productService = new ProductCatalogAdminService(productsRepo);
 const adminDialog = new AdminProductDialogService(config.getAdminId(), sessionStorage, productService);
 const adminCommands = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser(), new AdminPanelService(), adminDialog);
 const catalogDelivery = new GuestCatalogDeliveryService(new ProductCatalogGuestService(productsRepo, formatter));
-const userShopping = new UserShoppingFlowService(catalogDelivery, new CartService(cartRepo, productsRepo));
+const userShopping = new UserShoppingFlowService(catalogDelivery, new CartService(cartRepo, productsRepo), guestRegistryService, config.getAdminId());
 const bot = new VipTelegramBot(config.getBotToken(), onboardingService, new VipGuestMenuService(formatter), guestRegistryService, adminCommands, adminDialog, userShopping, config.getAdminId());
 
 bot.startPolling();

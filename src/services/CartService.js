@@ -18,11 +18,20 @@
     return product;
   }
 
-  buildCartText(chatId) {
+  buildCartPayload(chatId) {
     const cart = this.#cartRepository.getCartByChatId(chatId);
-    if (!cart.items.length) return 'Ваша корзина пока пуста.';
-    const lines = cart.items.map((item, i) => `${i + 1}. ${item.title} x${item.quantity} — от ${item.priceFrom} ₽`);
-    return `Ваши покупки:\n${lines.join('\n')}`;
+    if (!cart.items.length) return { text: 'Ваша корзина пока пуста.' };
+    const lines = cart.items.map((item, i) => `${i + 1}. ${item.title} (${item.quantity} шт) — от ${item.priceFrom} ₽`);
+    const total = cart.items.reduce((sum, item) => sum + item.priceFrom * item.quantity, 0);
+    return { text: `Ваши покупки:\n${lines.join('\n')}\n\nОбщая сумма: от ${total} ₽`, replyMarkup: { inline_keyboard: [[{ text: 'заказать', callback_data: 'checkout_cart' }]] } };
+  }
+
+  checkout(chatId) {
+    const cart = this.#cartRepository.getCartByChatId(chatId);
+    if (!cart.items.length) return null;
+    const summary = cart.items.map(item => `${item.title} (${item.quantity} шт)`).join(', ');
+    this.#cartRepository.saveCart(chatId, []);
+    return { summary };
   }
 }
 

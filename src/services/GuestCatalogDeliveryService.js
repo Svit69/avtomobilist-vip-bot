@@ -12,7 +12,7 @@
   }
 
   async #sendCard(bot, chatId, card) {
-    const button = { inline_keyboard: [[{ text: 'Заказать', callback_data: `add_to_cart:${card.productId}` }]] };
+    const button = { inline_keyboard: [[{ text: 'добавить в корзину', callback_data: `add_to_cart:${card.productId}` }]] };
     if (!card.photos.length) return bot.sendMessage(chatId, card.caption, { parse_mode: 'HTML', reply_markup: button });
     if (card.photos.length === 1) return bot.sendPhoto(chatId, card.photos[0], { caption: card.caption, parse_mode: 'HTML', reply_markup: button });
     const media = card.photos.map((photo, index) => (index ? { type: 'photo', media: photo } : { type: 'photo', media: photo, caption: card.caption, parse_mode: 'HTML' }));
