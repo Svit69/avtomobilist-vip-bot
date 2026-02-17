@@ -9,6 +9,10 @@
     return this.#repository.readAll();
   }
 
+  getProductById(id) {
+    return this.#repository.readAll().find(item => item.id === id) || null;
+  }
+
   addProduct(product) {
     const items = this.#repository.readAll();
     const nextId = items.reduce((max, item) => Math.max(max, item.id), 0) + 1;

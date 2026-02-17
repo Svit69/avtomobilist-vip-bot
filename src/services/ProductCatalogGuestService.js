@@ -11,8 +11,9 @@
     const items = this.#repository.getAllProducts();
     if (!items.length) return { emptyMessage: 'Сейчас товаров нет. Скоро добавим карточки мерча.' };
     const cards = items.map(item => ({
+      productId: item.id,
       photos: item.photos || [],
-      caption: `${this.#formatter.formatBold(item.title)}\n${item.description}\nЦена: ${this.#formatter.formatBold(`от ${item.priceFrom} ₽`)}`
+      caption: `${this.#formatter.formatBold(item.title)}\n${item.description}\n\nЦена: ${this.#formatter.formatBold(`от ${item.priceFrom} ₽`)}`
     }));
     return { cards };
   }
