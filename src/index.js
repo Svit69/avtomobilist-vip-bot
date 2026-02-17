@@ -13,20 +13,22 @@ const UserOnboardingService = require('./services/UserOnboardingService');
 const VipGuestMenuService = require('./services/VipGuestMenuService');
 const RegisteredGuestService = require('./services/RegisteredGuestService');
 const ProductCatalogAdminService = require('./services/ProductCatalogAdminService');
+const ProductCatalogGuestService = require('./services/ProductCatalogGuestService');
+const GuestCatalogDeliveryService = require('./services/GuestCatalogDeliveryService');
 const AdminProductPayloadParser = require('./services/AdminProductPayloadParser');
 const AdminCommandService = require('./services/AdminCommandService');
 const VipTelegramBot = require('./bot/VipTelegramBot');
 
 const config = new EnvironmentConfig(process.env);
-const storage = new InMemorySessionStorage();
 const formatter = new TelegramHtmlFormatter();
 const usersRepo = new RegisteredGuestRepository(new JsonFileRepository(path.join(__dirname, '../data/users.json')));
 const productsRepo = new ProductCatalogRepository(new JsonFileRepository(path.join(__dirname, '../data/products.json')));
-const onboardingService = new UserOnboardingService(storage, formatter, new NameContentPolicyService(), new LoungeFormatValidationService());
+const onboardingService = new UserOnboardingService(new InMemorySessionStorage(), formatter, new NameContentPolicyService(), new LoungeFormatValidationService());
 const guestMenuService = new VipGuestMenuService(formatter);
 const guestRegistryService = new RegisteredGuestService(usersRepo);
 const productService = new ProductCatalogAdminService(productsRepo);
 const adminCommandService = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser());
-const bot = new VipTelegramBot(config.getBotToken(), onboardingService, guestMenuService, guestRegistryService, adminCommandService, config.getAdminId());
+const catalogDelivery = new GuestCatalogDeliveryService(new ProductCatalogGuestService(productsRepo, formatter));
+const bot = new VipTelegramBot(config.getBotToken(), onboardingService, guestMenuService, guestRegistryService, adminCommandService, catalogDelivery, config.getAdminId());
 
 bot.startPolling();
