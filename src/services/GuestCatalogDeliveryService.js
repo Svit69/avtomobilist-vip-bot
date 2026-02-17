@@ -8,16 +8,11 @@
   async sendCatalog(bot, chatId) {
     const payload = this.#guestCatalogService.buildGuestCatalogPayload();
     if (payload.emptyMessage) return bot.sendMessage(chatId, payload.emptyMessage, { parse_mode: 'HTML' });
-    for (const card of payload.cards) await this.#sendCard(bot, chatId, card);
-  }
-
-  async #sendCard(bot, chatId, card) {
-    const button = { inline_keyboard: [[{ text: 'добавить в корзину', callback_data: `add_to_cart:${card.productId}` }]] };
-    if (!card.photos.length) return bot.sendMessage(chatId, card.caption, { parse_mode: 'HTML', reply_markup: button });
-    if (card.photos.length === 1) return bot.sendPhoto(chatId, card.photos[0], { caption: card.caption, parse_mode: 'HTML', reply_markup: button });
-    const media = card.photos.map((photo, index) => (index ? { type: 'photo', media: photo } : { type: 'photo', media: photo, caption: card.caption, parse_mode: 'HTML' }));
-    await bot.sendMediaGroup(chatId, media);
-    await bot.sendMessage(chatId, 'Добавить товар в корзину:', { reply_markup: button });
+    for (let i = 0; i < payload.photos.length; i += 10) {
+      const group = payload.photos.slice(i, i + 10).map(photo => ({ type: 'photo', media: photo }));
+      if (group.length) await bot.sendMediaGroup(chatId, group);
+    }
+    await bot.sendMessage(chatId, payload.text, { parse_mode: 'HTML', reply_markup: { inline_keyboard: payload.buttons } });
   }
 }
 

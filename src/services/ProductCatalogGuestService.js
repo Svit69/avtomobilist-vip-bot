@@ -10,12 +10,10 @@
   buildGuestCatalogPayload() {
     const items = this.#repository.getAllProducts();
     if (!items.length) return { emptyMessage: 'Сейчас товаров нет. Скоро добавим карточки мерча.' };
-    const cards = items.map(item => ({
-      productId: item.id,
-      photos: item.photos || [],
-      caption: `${this.#formatter.formatBold(item.title)}\n${item.description}\n\nЦена: ${this.#formatter.formatBold(`от ${item.priceFrom} ₽`)}`
-    }));
-    return { cards };
+    const text = items.map((item, i) => `${i + 1}. ${this.#formatter.formatBold(item.title)}\nЦена: ${this.#formatter.formatBold(`от ${item.priceFrom} ₽`)}`).join('\n\n');
+    const photos = items.flatMap(item => item.photos || []);
+    const buttons = items.map(item => [{ text: `${item.title}: добавить в корзину`, callback_data: `add_to_cart:${item.id}` }]);
+    return { text, photos, buttons };
   }
 }
 
