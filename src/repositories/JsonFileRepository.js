@@ -9,12 +9,17 @@ class JsonFileRepository {
   }
 
   readAll() {
-    const content = fs.readFileSync(this.#filePath, 'utf8') || '[]';
+    const raw = fs.readFileSync(this.#filePath, 'utf8') || '[]';
+    const content = this.#stripUtf8Bom(raw).trim() || '[]';
     return JSON.parse(content);
   }
 
   writeAll(items) {
     fs.writeFileSync(this.#filePath, JSON.stringify(items, null, 2), 'utf8');
+  }
+
+  #stripUtf8Bom(content) {
+    return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
   }
 }
 
