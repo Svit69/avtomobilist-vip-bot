@@ -13,6 +13,10 @@
     this.#repository.saveOrderedProduct(chatId, orderedProduct);
   }
 
+  getGuestByChatId(chatId) {
+    return this.#repository.getGuestByChatId(chatId);
+  }
+
   buildAdminGuestsReport() {
     const guests = this.#repository.getAllGuests();
     if (!guests.length) return 'Пока нет зарегистрированных пользователей.';

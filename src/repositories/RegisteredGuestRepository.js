@@ -22,6 +22,10 @@
     this.#repository.writeAll(items);
   }
 
+  getGuestByChatId(chatId) {
+    return this.#repository.readAll().find(item => item.chatId === chatId) || null;
+  }
+
   getAllGuests() {
     return this.#repository.readAll();
   }
