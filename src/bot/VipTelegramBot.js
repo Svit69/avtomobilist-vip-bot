@@ -1,14 +1,14 @@
 ﻿const TelegramBot = require('node-telegram-bot-api');
 
 class VipTelegramBot {
-  #bot; #onboardingService; #guestMenuService; #guestRegistryService; #adminCommandService; #guestCatalogDeliveryService; #adminId;
-
-  constructor(token, onboardingService, guestMenuService, guestRegistryService, adminCommandService, guestCatalogDeliveryService, adminId) {
+  #bot; #onboardingService; #guestMenuService; #guestRegistryService; #adminCommandService; #adminProductDialogService; #guestCatalogDeliveryService; #adminId;
+  constructor(token, onboardingService, guestMenuService, guestRegistryService, adminCommandService, adminProductDialogService, guestCatalogDeliveryService, adminId) {
     this.#bot = new TelegramBot(token, { polling: true });
     this.#onboardingService = onboardingService;
     this.#guestMenuService = guestMenuService;
     this.#guestRegistryService = guestRegistryService;
     this.#adminCommandService = adminCommandService;
+    this.#adminProductDialogService = adminProductDialogService;
     this.#guestCatalogDeliveryService = guestCatalogDeliveryService;
     this.#adminId = adminId;
   }
@@ -21,24 +21,24 @@ class VipTelegramBot {
   }
 
   async #handleIncomingMessage(msg) {
-    if (!msg.text) return;
-    const adminResponse = this.#adminCommandService.handleAdminCommand(msg.chat.id, msg.text);
-    if (adminResponse) return this.#sendAdminResponse(msg.chat.id, adminResponse);
-    if (msg.text.startsWith('/')) return;
-    const result = this.#onboardingService.handleOnboardingReply(msg.chat.id, msg.text);
-    await this.#sendMessages(msg.chat.id, result.messages);
+    if (!msg.text && !msg.photo) return;
+    const chatId = msg.chat.id;
+    const cancelResponse = msg.text === '/cancel' ? this.#adminProductDialogService.cancel(chatId) : null;
+    if (cancelResponse) return this.#sendAdminResponse(chatId, cancelResponse);
+    const adminResponse = msg.text ? this.#adminCommandService.handleAdminCommand(chatId, msg.text) : null;
+    if (adminResponse) return this.#sendAdminResponse(chatId, adminResponse);
+    const dialogResponse = this.#adminProductDialogService.handleStep(chatId, msg);
+    if (dialogResponse) return this.#sendAdminResponse(chatId, dialogResponse);
+    if (!msg.text || msg.text.startsWith('/')) return;
+    const result = this.#onboardingService.handleOnboardingReply(chatId, msg.text);
+    await this.#sendMessages(chatId, result.messages);
     if (!result.completedProfile) return;
-    this.#guestRegistryService.saveRegistration(msg.chat.id, result.completedProfile);
-    if (msg.chat.id !== this.#adminId) await this.#notifyAdmin(msg.chat.id, result.completedProfile);
-    await this.#sendGuestMenu(msg.chat.id, result.completedProfile);
+    this.#guestRegistryService.saveRegistration(chatId, result.completedProfile);
+    if (chatId !== this.#adminId) await this.#notifyAdmin(chatId, result.completedProfile);
+    await this.#sendGuestMenu(chatId, result.completedProfile);
   }
 
-  async #handleCallbackQuery(query) {
-    if (query.data !== 'charity_merch') return;
-    try { await this.#bot.answerCallbackQuery(query.id); } catch (error) { if (!String(error.message).includes('query is too old')) throw error; }
-    await this.#guestCatalogDeliveryService.sendCatalog(this.#bot, query.message.chat.id);
-  }
-
+  async #handleCallbackQuery(query) { if (query.data !== 'charity_merch') return; try { await this.#bot.answerCallbackQuery(query.id); } catch (error) { if (!String(error.message).includes('query is too old')) throw error; } await this.#guestCatalogDeliveryService.sendCatalog(this.#bot, query.message.chat.id); }
   async #safeRun(action) { try { await action(); } catch (error) { console.error('bot_handler_error:', error.message); } }
   async #sendAdminResponse(chatId, response) { await this.#bot.sendMessage(chatId, response.text, { parse_mode: 'HTML', reply_markup: response.replyMarkup }); }
   async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }

@@ -4,13 +4,15 @@
   #productService;
   #payloadParser;
   #panelService;
+  #productDialogService;
 
-  constructor(adminId, guestService, productService, payloadParser, panelService) {
+  constructor(adminId, guestService, productService, payloadParser, panelService, productDialogService) {
     this.#adminId = adminId;
     this.#guestService = guestService;
     this.#productService = productService;
     this.#payloadParser = payloadParser;
     this.#panelService = panelService;
+    this.#productDialogService = productDialogService;
   }
 
   handleAdminCommand(chatId, text) {
@@ -18,21 +20,13 @@
     if (text === '/admin') return this.#panelService.buildPanelResponse();
     if (text === '/admin_users') return { text: this.#guestService.buildAdminGuestsReport() };
     if (text === '/admin_products') return { text: this.#productService.listProductsText() };
-    if (text === '/admin_help') return { text: 'Примеры:\n/admin_product_add Название | Описание | ЦенаОт | Фото1, Фото2\n/admin_product_edit ID | Название | Описание | ЦенаОт | Фото1, Фото2\n/admin_product_delete ID' };
-    if (text === '/admin_product_add') return { text: 'Формат: /admin_product_add Название | Описание | ЦенаОт | Фото1, Фото2' };
+    if (text === '/admin_help') return { text: 'Диалог: /admin_product_add\nПодтверждение: /confirm\nОтмена: /cancel\n\nБыстрые команды:\n/admin_product_edit ID | Название | Описание | ЦенаОт | Фото1, Фото2\n/admin_product_delete ID' };
+    if (text === '/admin_product_add') return this.#productDialogService.startDialog(chatId);
     if (text === '/admin_product_edit') return { text: 'Формат: /admin_product_edit ID | Название | Описание | ЦенаОт | Фото1, Фото2' };
     if (text === '/admin_product_delete') return { text: 'Формат: /admin_product_delete ID' };
-    if (text.startsWith('/admin_product_add ')) return this.#handleAdd(text);
     if (text.startsWith('/admin_product_edit ')) return this.#handleEdit(text);
     if (text.startsWith('/admin_product_delete ')) return this.#handleDelete(text);
     return { text: 'Неизвестная команда админа. Нажмите /admin.' };
-  }
-
-  #handleAdd(text) {
-    const parsed = this.#payloadParser.parseProductPayload(text.replace('/admin_product_add ', ''));
-    if (parsed.error) return { text: parsed.error };
-    const item = this.#productService.addProduct(parsed.value);
-    return { text: `Карточка добавлена: #${item.id} ${item.title}` };
   }
 
   #handleEdit(text) {
