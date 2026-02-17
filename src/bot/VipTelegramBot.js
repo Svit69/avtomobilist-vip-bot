@@ -42,7 +42,7 @@ class VipTelegramBot {
   async #handleCallbackQuery(query) { if (await this.#userShoppingFlowService.handleCallbackAction(this.#bot, query)) return; }
   async #safeRun(action) { try { await action(); } catch (error) { console.error('bot_handler_error:', error.message); } }
   async #sendAdminResponse(chatId, response) { await this.#bot.sendMessage(chatId, response.text, { parse_mode: 'HTML', reply_markup: response.replyMarkup }); }
-  async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }
+  async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile, chatId === this.#adminId); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }
   async #notifyAdmin(chatId, profile) { await this.#sendFormattedMessage(this.#adminId, `Новая регистрация:\nID: ${chatId}\nИмя: ${profile.name}\nЛожа: ${profile.lounge}`); }
   async #sendMessages(chatId, messages) { for (const text of messages) await this.#sendFormattedMessage(chatId, text); }
   async #sendFormattedMessage(chatId, text) { await this.#bot.sendMessage(chatId, text, { parse_mode: 'HTML' }); }
