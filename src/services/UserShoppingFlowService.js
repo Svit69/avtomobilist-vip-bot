@@ -4,7 +4,7 @@
 
   async handleTextAction(bot, chatId, text) {
     if (text === 'Благотворительный мерч') { await this.#catalogDelivery.sendCatalog(bot, chatId); return true; }
-    if (text === 'Покупки') return this.#sendCart(bot, chatId);
+    if (text === 'Корзина') return this.#sendCart(bot, chatId);
     if (text === '/menu') { await bot.sendMessage(chatId, 'Пользовательская панель активна.', { reply_markup: this.#userKeyboard(chatId) }); return true; }
     return false;
   }
@@ -36,7 +36,7 @@
     return true;
   }
   async #sendCatalogFromCallback(bot, query) { await this.#safeAnswer(bot, query.id); await this.#catalogDelivery.sendCatalog(bot, query.message.chat.id); return true; }
-  #userKeyboard(chatId) { return { keyboard: [[{ text: 'Благотворительный мерч' }, { text: 'Покупки' }], ...(chatId === this.#adminId ? [[{ text: '/admin' }]] : [])], resize_keyboard: true, is_persistent: true }; }
+  #userKeyboard(chatId) { return { keyboard: [[{ text: 'Благотворительный мерч' }, { text: 'Корзина' }], ...(chatId === this.#adminId ? [[{ text: '/admin' }]] : [])], resize_keyboard: true, is_persistent: true }; }
   async #safeAnswer(bot, queryId) { try { await bot.answerCallbackQuery(queryId); } catch (error) { if (!String(error.message).includes('query is too old')) throw error; } }
 }
 
