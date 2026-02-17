@@ -14,9 +14,10 @@ class VipTelegramBot {
   }
 
   startPolling() {
-    this.#bot.onText(/^\/start$/, msg => this.#sendMessages(msg.chat.id, this.#onboardingService.beginOnboardingForChat(msg.chat.id)));
-    this.#bot.on('message', msg => this.#handleIncomingMessage(msg));
-    this.#bot.on('callback_query', query => this.#handleCallbackQuery(query));
+    this.#bot.onText(/^\/start$/, msg => this.#safeRun(() => this.#sendMessages(msg.chat.id, this.#onboardingService.beginOnboardingForChat(msg.chat.id))));
+    this.#bot.on('message', msg => this.#safeRun(() => this.#handleIncomingMessage(msg)));
+    this.#bot.on('callback_query', query => this.#safeRun(() => this.#handleCallbackQuery(query)));
+    this.#bot.on('polling_error', error => console.error('polling_error:', error.message));
   }
 
   async #handleIncomingMessage(msg) {
@@ -32,7 +33,13 @@ class VipTelegramBot {
     await this.#sendGuestMenu(msg.chat.id, result.completedProfile);
   }
 
-  async #handleCallbackQuery(query) { if (query.data !== 'charity_merch') return; await this.#bot.answerCallbackQuery(query.id); await this.#guestCatalogDeliveryService.sendCatalog(this.#bot, query.message.chat.id); }
+  async #handleCallbackQuery(query) {
+    if (query.data !== 'charity_merch') return;
+    try { await this.#bot.answerCallbackQuery(query.id); } catch (error) { if (!String(error.message).includes('query is too old')) throw error; }
+    await this.#guestCatalogDeliveryService.sendCatalog(this.#bot, query.message.chat.id);
+  }
+
+  async #safeRun(action) { try { await action(); } catch (error) { console.error('bot_handler_error:', error.message); } }
   async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }
   async #notifyAdmin(chatId, profile) { await this.#sendFormattedMessage(this.#adminId, `Новая регистрация:\nID: ${chatId}\nИмя: ${profile.name}\nЛожа: ${profile.lounge}`); }
   async #sendMessages(chatId, messages) { for (const text of messages) await this.#sendFormattedMessage(chatId, text); }

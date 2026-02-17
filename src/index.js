@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const EnvironmentConfig = require('./config/EnvironmentConfig');
-const InMemorySessionStorage = require('./core/InMemorySessionStorage');
+const FileSessionStorage = require('./core/FileSessionStorage');
 const JsonFileRepository = require('./repositories/JsonFileRepository');
 const RegisteredGuestRepository = require('./repositories/RegisteredGuestRepository');
 const ProductCatalogRepository = require('./repositories/ProductCatalogRepository');
@@ -23,7 +23,9 @@ const config = new EnvironmentConfig(process.env);
 const formatter = new TelegramHtmlFormatter();
 const usersRepo = new RegisteredGuestRepository(new JsonFileRepository(path.join(__dirname, '../data/users.json')));
 const productsRepo = new ProductCatalogRepository(new JsonFileRepository(path.join(__dirname, '../data/products.json')));
-const onboardingService = new UserOnboardingService(new InMemorySessionStorage(), formatter, new NameContentPolicyService(), new LoungeFormatValidationService());
+const sessionsRepo = new JsonFileRepository(path.join(__dirname, '../data/sessions.json'));
+const sessionStorage = new FileSessionStorage(sessionsRepo);
+const onboardingService = new UserOnboardingService(sessionStorage, formatter, new NameContentPolicyService(), new LoungeFormatValidationService());
 const guestMenuService = new VipGuestMenuService(formatter);
 const guestRegistryService = new RegisteredGuestService(usersRepo);
 const productService = new ProductCatalogAdminService(productsRepo);
