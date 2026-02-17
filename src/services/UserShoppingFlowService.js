@@ -3,7 +3,6 @@
   #cartService;
   #guestService;
   #adminId;
-
   constructor(catalogDelivery, cartService, guestService, adminId) {
     this.#catalogDelivery = catalogDelivery;
     this.#cartService = cartService;
@@ -30,7 +29,19 @@
   }
 
   async #sendCart(bot, chatId) { const payload = this.#cartService.buildCartPayload(chatId); await bot.sendMessage(chatId, payload.text, { parse_mode: 'HTML', reply_markup: payload.replyMarkup }); return true; }
-  async #checkout(bot, query) { await this.#safeAnswer(bot, query.id); const order = this.#cartService.checkout(query.message.chat.id); if (!order) { await bot.sendMessage(query.message.chat.id, 'Корзина пуста.'); return true; } this.#guestService.saveOrderedProduct(query.message.chat.id, order.summary); await bot.sendMessage(query.message.chat.id, `Заказ принят: ${order.summary}`); return true; }
+  async #checkout(bot, query) {
+    await this.#safeAnswer(bot, query.id);
+    const chatId = query.message.chat.id;
+    const order = this.#cartService.checkout(chatId);
+    if (!order) { await bot.sendMessage(chatId, 'Корзина пуста.'); return true; }
+    const summary = order.items.map(item => `${item.title} (${item.quantity} шт)`).join(', ');
+    this.#guestService.saveOrderedProduct(chatId, summary);
+    const lines = order.items.map(item => `• ${item.title} — ${item.quantity} шт.`);
+    const total = new Intl.NumberFormat('ru-RU').format(order.total);
+    const text = `<b>Заказ принят, спасибо!</b>\n\nВ вашем заказе:\n${lines.join('\n')}\n\n<b>Общая сумма:</b> от ${total} ₽\n\nНаша ассистентка уже направляется к вашей VIP-ложе с товарами.\nЕсли потребуется что-то ещё — мы рядом и всегда готовы помочь. 🏒`;
+    await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
+    return true;
+  }
   async #sendCatalogFromCallback(bot, query) { await this.#safeAnswer(bot, query.id); await this.#catalogDelivery.sendCatalog(bot, query.message.chat.id); return true; }
   #userKeyboard(chatId) { return { keyboard: [[{ text: 'Благотворительный мерч' }, { text: 'Покупки' }], ...(chatId === this.#adminId ? [[{ text: '/admin' }]] : [])], resize_keyboard: true, is_persistent: true }; }
   async #safeAnswer(bot, queryId) { try { await bot.answerCallbackQuery(queryId); } catch (error) { if (!String(error.message).includes('query is too old')) throw error; } }

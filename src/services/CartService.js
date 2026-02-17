@@ -29,9 +29,10 @@
   checkout(chatId) {
     const cart = this.#cartRepository.getCartByChatId(chatId);
     if (!cart.items.length) return null;
-    const summary = cart.items.map(item => `${item.title} (${item.quantity} шт)`).join(', ');
+    const items = cart.items.map(item => ({ title: item.title, quantity: item.quantity, priceFrom: item.priceFrom }));
+    const total = cart.items.reduce((sum, item) => sum + item.priceFrom * item.quantity, 0);
     this.#cartRepository.saveCart(chatId, []);
-    return { summary };
+    return { items, total };
   }
 }
 
