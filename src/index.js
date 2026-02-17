@@ -17,6 +17,7 @@ const ProductCatalogGuestService = require('./services/ProductCatalogGuestServic
 const GuestCatalogDeliveryService = require('./services/GuestCatalogDeliveryService');
 const AdminProductPayloadParser = require('./services/AdminProductPayloadParser');
 const AdminCommandService = require('./services/AdminCommandService');
+const AdminPanelService = require('./services/AdminPanelService');
 const VipTelegramBot = require('./bot/VipTelegramBot');
 
 const config = new EnvironmentConfig(process.env);
@@ -29,7 +30,7 @@ const onboardingService = new UserOnboardingService(sessionStorage, formatter, n
 const guestMenuService = new VipGuestMenuService(formatter);
 const guestRegistryService = new RegisteredGuestService(usersRepo);
 const productService = new ProductCatalogAdminService(productsRepo);
-const adminCommandService = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser());
+const adminCommandService = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser(), new AdminPanelService());
 const catalogDelivery = new GuestCatalogDeliveryService(new ProductCatalogGuestService(productsRepo, formatter));
 const bot = new VipTelegramBot(config.getBotToken(), onboardingService, guestMenuService, guestRegistryService, adminCommandService, catalogDelivery, config.getAdminId());
 

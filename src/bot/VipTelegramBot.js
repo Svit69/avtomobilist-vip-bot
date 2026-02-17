@@ -23,7 +23,7 @@ class VipTelegramBot {
   async #handleIncomingMessage(msg) {
     if (!msg.text) return;
     const adminResponse = this.#adminCommandService.handleAdminCommand(msg.chat.id, msg.text);
-    if (adminResponse) return this.#sendFormattedMessage(msg.chat.id, adminResponse.text);
+    if (adminResponse) return this.#sendAdminResponse(msg.chat.id, adminResponse);
     if (msg.text.startsWith('/')) return;
     const result = this.#onboardingService.handleOnboardingReply(msg.chat.id, msg.text);
     await this.#sendMessages(msg.chat.id, result.messages);
@@ -40,6 +40,7 @@ class VipTelegramBot {
   }
 
   async #safeRun(action) { try { await action(); } catch (error) { console.error('bot_handler_error:', error.message); } }
+  async #sendAdminResponse(chatId, response) { await this.#bot.sendMessage(chatId, response.text, { parse_mode: 'HTML', reply_markup: response.replyMarkup }); }
   async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }
   async #notifyAdmin(chatId, profile) { await this.#sendFormattedMessage(this.#adminId, `Новая регистрация:\nID: ${chatId}\nИмя: ${profile.name}\nЛожа: ${profile.lounge}`); }
   async #sendMessages(chatId, messages) { for (const text of messages) await this.#sendFormattedMessage(chatId, text); }
