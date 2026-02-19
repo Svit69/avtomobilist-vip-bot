@@ -13,7 +13,7 @@
     const positions = items.map((item, i) => `${i + 1}. ${this.#formatter.formatBold(item.title)}\nЦена: ${this.#formatter.formatBold(`от ${item.priceFrom} ₽`)}`);
     const donationText = `${items.length + 1}. Не хочу ничего покупать, хочу просто пожертвовать деньги на благотворительность, <a href="https://help-children.net/campaign/obnovlenie-tehnologicheskoj-bazy-laboratorii-tsentra-detskoj-onkologii-i-gematologii-odkb-sleduyushhij-etap/">перейти на сайт фонда</a>.`;
     const notice = '* количество наборов ограниченно';
-    const text = [notice, ...positions, donationText].join('\\n\\n');
+    const text = [notice, ...positions, donationText].join('\n\n');
     const photos = items.flatMap(item => item.photos || []);
     const buttons = items.map(item => [{ text: `${item.title}: добавить в корзину`, callback_data: `add_to_cart:${item.id}` }]);
     return { text, photos, buttons };

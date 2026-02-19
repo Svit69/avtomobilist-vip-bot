@@ -12,7 +12,7 @@
       const group = payload.photos.slice(i, i + 10).map(photo => ({ type: 'photo', media: photo }));
       if (group.length) await bot.sendMediaGroup(chatId, group);
     }
-    await bot.sendMessage(chatId, payload.text, { parse_mode: 'HTML', reply_markup: { inline_keyboard: payload.buttons } });
+    await bot.sendMessage(chatId, payload.text, { parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: { inline_keyboard: payload.buttons } });
   }
 }
 
