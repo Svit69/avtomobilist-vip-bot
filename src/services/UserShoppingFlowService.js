@@ -4,7 +4,7 @@
 
   async handleTextAction(bot, chatId, text) {
     if (text === 'Благотворительный мерч') { await this.#catalogDelivery.sendCatalog(bot, chatId); return true; }
-    if (text === 'Корзина') return this.#sendCart(bot, chatId);
+    if (text === 'Корзина' || text === '/cart' || text === '/pereyti_v_korzinu') return this.#sendCart(bot, chatId);
     if (text === '/menu') { await bot.sendMessage(chatId, 'Пользовательская панель активна.', { reply_markup: this.#userKeyboard(chatId) }); return true; }
     return false;
   }
@@ -17,6 +17,7 @@
     const result = this.#cartService.addProduct(query.message.chat.id, Number(String(query.data).split(':')[1]));
     const text = result.code === 'OK' ? `Добавили в корзину: ${result.product.title}` : result.code === 'NOT_FOUND' ? 'Товар не найден.' : result.code === 'OUT_OF_STOCK' ? 'Товара нет в наличии.' : 'Недостаточно остатка для добавления.';
     await bot.sendMessage(query.message.chat.id, text, { parse_mode: 'HTML' });
+    if (result.code === 'OK') await bot.sendMessage(query.message.chat.id, 'Чтобы оформить заказ, вам нужно перейти в корзину: /cart');
     return true;
   }
 
