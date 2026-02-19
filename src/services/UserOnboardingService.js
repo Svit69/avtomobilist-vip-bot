@@ -18,7 +18,7 @@ class UserOnboardingService {
 
   beginOnboardingForChat(chatId) {
     this.#storage.saveByChatId(chatId, { step: states.WAITING_NAME });
-    return ['Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒', 'Помогу с сервисом в ложу, мерчем и всем, что нужно по матчу «Автомобилист» vs «Адмирал».', `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`];
+    return ['Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒', 'С моей помощью вы можете заказать благотворительный мерч на матче «Автомобилист» vs «Адмирал».', `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`];
   }
 
   handleOnboardingReply(chatId, inputText) {
