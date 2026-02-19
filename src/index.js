@@ -22,6 +22,7 @@ const AdminProductPayloadParser = require('./services/AdminProductPayloadParser'
 const AdminCommandService = require('./services/AdminCommandService');
 const AdminPanelService = require('./services/AdminPanelService');
 const AdminProductDialogService = require('./services/AdminProductDialogService');
+const AdminProductQuantityDialogService = require('./services/AdminProductQuantityDialogService');
 const VipTelegramBot = require('./bot/VipTelegramBot');
 
 const config = new EnvironmentConfig(process.env);
@@ -34,9 +35,10 @@ const onboardingService = new UserOnboardingService(sessionStorage, formatter, n
 const guestRegistryService = new RegisteredGuestService(usersRepo);
 const productService = new ProductCatalogAdminService(productsRepo);
 const adminDialog = new AdminProductDialogService(config.getAdminId(), sessionStorage, productService);
-const adminCommands = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser(), new AdminPanelService(), adminDialog);
+const quantityDialog = new AdminProductQuantityDialogService(config.getAdminId(), sessionStorage, productService);
+const adminCommands = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser(), new AdminPanelService(), adminDialog, quantityDialog);
 const catalogDelivery = new GuestCatalogDeliveryService(new ProductCatalogGuestService(productsRepo, formatter));
 const userShopping = new UserShoppingFlowService(catalogDelivery, new CartService(cartRepo, productsRepo), guestRegistryService, config.getAdminId());
-const bot = new VipTelegramBot(config.getBotToken(), onboardingService, new VipGuestMenuService(formatter), guestRegistryService, adminCommands, adminDialog, userShopping, config.getAdminId());
+const bot = new VipTelegramBot(config.getBotToken(), onboardingService, new VipGuestMenuService(formatter), guestRegistryService, adminCommands, adminDialog, quantityDialog, userShopping, config.getAdminId());
 
 bot.startPolling();

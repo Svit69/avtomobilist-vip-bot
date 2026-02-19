@@ -14,9 +14,9 @@
     if (query.data === 'checkout_cart') return this.#checkout(bot, query);
     if (!String(query.data).startsWith('add_to_cart:')) return false;
     await this.#safeAnswer(bot, query.id);
-    const productId = Number(String(query.data).split(':')[1]);
-    const product = this.#cartService.addProduct(query.message.chat.id, productId);
-    await bot.sendMessage(query.message.chat.id, product ? `Добавили в корзину: ${product.title}` : 'Товар не найден.', { parse_mode: 'HTML' });
+    const result = this.#cartService.addProduct(query.message.chat.id, Number(String(query.data).split(':')[1]));
+    const text = result.code === 'OK' ? `Добавили в корзину: ${result.product.title}` : result.code === 'NOT_FOUND' ? 'Товар не найден.' : result.code === 'OUT_OF_STOCK' ? 'Товара нет в наличии.' : 'Недостаточно остатка для добавления.';
+    await bot.sendMessage(query.message.chat.id, text, { parse_mode: 'HTML' });
     return true;
   }
 
@@ -25,7 +25,7 @@
     await this.#safeAnswer(bot, query.id);
     const chatId = query.message.chat.id;
     const order = this.#cartService.checkout(chatId);
-    if (!order) { await bot.sendMessage(chatId, 'Корзина пуста.'); return true; }
+    if (order.error) { await bot.sendMessage(chatId, order.error); return true; }
     const summary = order.items.map(item => `${item.title} (${item.quantity} шт)`).join(', ');
     const adminLines = order.items.map(item => `• ${item.title} (${item.quantity} шт)`);
     const lines = order.items.map(item => `• ${item.title} — ${item.quantity} шт.`);
@@ -33,10 +33,7 @@
     this.#guestService.saveOrderedProduct(chatId, summary);
     await bot.sendMessage(chatId, `<b>Заказ принят, спасибо!</b>\n\nВ вашем заказе:\n${lines.join('\n')}\n\n<b>Общая сумма:</b> от ${total} ₽\n\nНаша ассистентка уже направляется к вашей VIP-ложе с товарами.\nЕсли потребуется что-то ещё — мы рядом и всегда готовы помочь. 🏒`, { parse_mode: 'HTML' });
     const guest = this.#guestService.getGuestByChatId(chatId);
-    if (guest && chatId !== this.#adminId) {
-      const adminText = `<b>Новый заказ:</b>\nИмя: <b>${guest.name}</b>\nЛожа: <b>${guest.lounge}</b>\nПозиции:\n${adminLines.join('\n')}\n\nОбщая сумма: <b>от ${total} ₽</b>`;
-      await bot.sendMessage(this.#adminId, adminText, { parse_mode: 'HTML' });
-    }
+    if (guest && chatId !== this.#adminId) await bot.sendMessage(this.#adminId, `<b>Новый заказ:</b>\nИмя: <b>${guest.name}</b>\nЛожа: <b>${guest.lounge}</b>\nПозиции:\n${adminLines.join('\n')}\n\nОбщая сумма: <b>от ${total} ₽</b>`, { parse_mode: 'HTML' });
     return true;
   }
   async #sendCatalogFromCallback(bot, query) { await this.#safeAnswer(bot, query.id); await this.#catalogDelivery.sendCatalog(bot, query.message.chat.id); return true; }

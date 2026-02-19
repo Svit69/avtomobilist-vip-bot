@@ -2,20 +2,20 @@
   #cartRepository;
   #productRepository;
 
-  constructor(cartRepository, productRepository) {
-    this.#cartRepository = cartRepository;
-    this.#productRepository = productRepository;
-  }
+  constructor(cartRepository, productRepository) { this.#cartRepository = cartRepository; this.#productRepository = productRepository; }
 
   addProduct(chatId, productId) {
     const product = this.#productRepository.getProductById(productId);
-    if (!product) return null;
+    if (!product) return { code: 'NOT_FOUND' };
+    if (product.quantity <= 0) return { code: 'OUT_OF_STOCK' };
     const cart = this.#cartRepository.getCartByChatId(chatId);
     const index = cart.items.findIndex(item => item.productId === productId);
-    if (index >= 0) cart.items[index].quantity += 1;
+    const nextQty = index >= 0 ? cart.items[index].quantity + 1 : 1;
+    if (nextQty > product.quantity) return { code: 'LIMIT', product };
+    if (index >= 0) cart.items[index].quantity = nextQty;
     if (index < 0) cart.items.push({ productId, title: product.title, priceFrom: product.priceFrom, quantity: 1 });
     this.#cartRepository.saveCart(chatId, cart.items);
-    return product;
+    return { code: 'OK', product };
   }
 
   buildCartPayload(chatId) {
@@ -28,7 +28,9 @@
 
   checkout(chatId) {
     const cart = this.#cartRepository.getCartByChatId(chatId);
-    if (!cart.items.length) return null;
+    if (!cart.items.length) return { error: 'Корзина пуста.' };
+    const stock = this.#productRepository.decreaseQuantities(cart.items);
+    if (stock.error) return { error: stock.error };
     const items = cart.items.map(item => ({ title: item.title, quantity: item.quantity, priceFrom: item.priceFrom }));
     const total = cart.items.reduce((sum, item) => sum + item.priceFrom * item.quantity, 0);
     this.#cartRepository.saveCart(chatId, []);
