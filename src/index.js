@@ -17,6 +17,7 @@ const ProductCatalogAdminService = require('./services/ProductCatalogAdminServic
 const ProductCatalogGuestService = require('./services/ProductCatalogGuestService');
 const GuestCatalogDeliveryService = require('./services/GuestCatalogDeliveryService');
 const CartService = require('./services/CartService');
+const CartDeleteDialogService = require('./services/CartDeleteDialogService');
 const UserShoppingFlowService = require('./services/UserShoppingFlowService');
 const AdminProductPayloadParser = require('./services/AdminProductPayloadParser');
 const AdminCommandService = require('./services/AdminCommandService');
@@ -39,8 +40,10 @@ const adminDialog = new AdminProductDialogService(config.getAdminId(), sessionSt
 const quantityDialog = new AdminProductQuantityDialogService(config.getAdminId(), sessionStorage, productService);
 const broadcastDialog = new AdminBroadcastDialogService(config.getAdminId(), sessionStorage, guestRegistryService);
 const adminCommands = new AdminCommandService(config.getAdminId(), guestRegistryService, productService, new AdminProductPayloadParser(), new AdminPanelService(), adminDialog, quantityDialog, broadcastDialog);
+const cartService = new CartService(cartRepo, productsRepo);
+const cartDeleteDialog = new CartDeleteDialogService(sessionStorage, cartService);
 const catalogDelivery = new GuestCatalogDeliveryService(new ProductCatalogGuestService(productsRepo, formatter));
-const userShopping = new UserShoppingFlowService(catalogDelivery, new CartService(cartRepo, productsRepo), guestRegistryService, config.getAdminId());
-const bot = new VipTelegramBot(config.getBotToken(), onboardingService, new VipGuestMenuService(formatter), guestRegistryService, adminCommands, adminDialog, quantityDialog, broadcastDialog, userShopping, config.getAdminId());
+const userShopping = new UserShoppingFlowService(catalogDelivery, cartService, guestRegistryService, config.getAdminId());
+const bot = new VipTelegramBot(config.getBotToken(), onboardingService, new VipGuestMenuService(formatter), guestRegistryService, adminCommands, adminDialog, quantityDialog, broadcastDialog, cartDeleteDialog, userShopping, config.getAdminId());
 
 bot.startPolling();

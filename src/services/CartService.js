@@ -3,6 +3,7 @@
   #productRepository;
 
   constructor(cartRepository, productRepository) { this.#cartRepository = cartRepository; this.#productRepository = productRepository; }
+  getCartItems(chatId) { return this.#cartRepository.getCartByChatId(chatId).items; }
 
   addProduct(chatId, productId) {
     const product = this.#productRepository.getProductById(productId);
@@ -23,8 +24,11 @@
     if (!cart.items.length) return { text: 'Ваша корзина пока пуста.' };
     const lines = cart.items.map((item, i) => `${i + 1}. ${item.title} (${item.quantity} шт) — от ${item.priceFrom} ₽`);
     const total = cart.items.reduce((sum, item) => sum + item.priceFrom * item.quantity, 0);
-    return { text: `Ваши покупки:\n${lines.join('\n')}\n\nОбщая сумма: от ${total} ₽`, replyMarkup: { inline_keyboard: [[{ text: 'заказать', callback_data: 'checkout_cart' }]] } };
+    return { text: `Ваши покупки:\n${lines.join('\n')}\n\nОбщая сумма: от ${total} ₽\n\nЕсли хотите удалить предметы из корзины, нажмите /delete`, replyMarkup: { inline_keyboard: [[{ text: 'заказать', callback_data: 'checkout_cart' }]] } };
   }
+
+  removeItemByIndex(chatId, index) { const cart = this.#cartRepository.getCartByChatId(chatId); if (index < 0 || index >= cart.items.length) return null; const [removed] = cart.items.splice(index, 1); this.#cartRepository.saveCart(chatId, cart.items); return removed; }
+  removeAll(chatId) { this.#cartRepository.saveCart(chatId, []); }
 
   checkout(chatId) {
     const cart = this.#cartRepository.getCartByChatId(chatId);
