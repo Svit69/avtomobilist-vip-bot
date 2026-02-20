@@ -26,7 +26,7 @@ class VipTelegramBot {
     const broadcastResponse = msg.text ? this.#adminBroadcastDialogService.handleText(chatId, msg.text) : null;
     if (broadcastResponse) { if (broadcastResponse.broadcast) await this.#sendBroadcast(broadcastResponse.broadcast.chatIds, broadcastResponse.broadcast.text); return this.#sendAdminResponse(chatId, broadcastResponse); }
     const deleteResponse = msg.text ? this.#cartDeleteDialogService.handleText(chatId, msg.text) : null;
-    if (deleteResponse) return this.#sendAdminResponse(chatId, deleteResponse);
+    if (deleteResponse) { await this.#sendAdminResponse(chatId, deleteResponse); if (deleteResponse.showCart) await this.#userShoppingFlowService.handleTextAction(this.#bot, chatId, 'Корзина'); return; }
     const dialogResponse = this.#adminProductDialogService.handleStep(chatId, msg);
     if (dialogResponse) return this.#sendAdminResponse(chatId, dialogResponse);
     if (msg.text && await this.#userShoppingFlowService.handleTextAction(this.#bot, chatId, msg.text)) return;

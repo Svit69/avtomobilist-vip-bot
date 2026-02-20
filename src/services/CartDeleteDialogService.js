@@ -19,9 +19,9 @@
     const selected = Number(String(text).trim());
     if (!Number.isInteger(selected) || selected < 1 || selected > items.length + 1) return { text: `Введите номер позиции от 1 до ${items.length + 1} или /cancel.` };
     this.#storage.saveByChatId(chatId, { cartDeleteDialog: null });
-    if (selected === items.length + 1) { this.#cartService.removeAll(chatId); return { text: 'Все позиции удалены из корзины.' }; }
+    if (selected === items.length + 1) { this.#cartService.removeAll(chatId); return { text: 'Все позиции удалены из корзины.', showCart: true }; }
     const removed = this.#cartService.removeItemByIndex(chatId, selected - 1);
-    return removed ? { text: `Удалили из корзины: ${removed.title}` } : { text: 'Не удалось удалить позицию.' };
+    return removed ? { text: `Удалили из корзины: ${removed.title}`, showCart: true } : { text: 'Не удалось удалить позицию.' };
   }
 
   cancel(chatId) {
