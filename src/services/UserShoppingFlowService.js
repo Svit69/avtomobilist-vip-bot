@@ -33,7 +33,7 @@
     const lines = order.items.map(item => `• ${item.title} — ${item.quantity} шт.`);
     const total = new Intl.NumberFormat('ru-RU').format(order.total);
     this.#guestService.saveOrderedProduct(chatId, summary);
-    await bot.sendMessage(chatId, `<b>Заказ принят, спасибо!</b>\n\nВ вашем заказе:\n${lines.join('\n')}\n\n<b>Общая сумма:</b> от ${total} ₽\n\nНаша ассистентка уже направляется к вашей VIP-ложе с товарами.\nЕсли потребуется что-то ещё — мы рядом и всегда готовы помочь. 🏒`, { parse_mode: 'HTML' });
+    await bot.sendMessage(chatId, `<b>Заказ принят, спасибо!</b>\n\nВ вашем заказе:\n${lines.join('\n')}\n\n<b>Общая сумма:</b> от ${total} ₽\n\nНаш администратор уже направляется к вашей VIP-ложе с товарами. 🏒`, { parse_mode: 'HTML' });
     const guest = this.#guestService.getGuestByChatId(chatId);
     if (guest && chatId !== this.#adminId) await bot.sendMessage(this.#adminId, `<b>Новый заказ:</b>\nИмя: <b>${guest.name}</b>\nЛожа: <b>${guest.lounge}</b>\nПозиции:\n${adminLines.join('\n')}\n\nОбщая сумма: <b>от ${total} ₽</b>`, { parse_mode: 'HTML' });
     return true;
