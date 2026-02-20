@@ -17,6 +17,10 @@
     return this.#repository.getGuestByChatId(chatId);
   }
 
+  getAllGuestChatIds() {
+    return [...new Set(this.#repository.getAllGuests().map(guest => guest.chatId))];
+  }
+
   buildAdminGuestsReport() {
     const guests = this.#repository.getAllGuests();
     if (!guests.length) return 'Пока нет зарегистрированных пользователей.';
