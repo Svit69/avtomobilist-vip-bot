@@ -26,7 +26,7 @@ class UserOnboardingService {
     if (!session || !session.step) return { messages: this.beginOnboardingForChat(chatId) };
     if (session.step === states.WAITING_NAME) return this.#handleNameStep(chatId, inputText);
     if (session.step === states.WAITING_LOUNGE) return this.#handleLoungeStep(chatId, inputText, session.name);
-    return { messages: ['Вы уже зарегистрированы. Для перезапуска отправьте /start.'] };
+    return { messages: ['Для связи с администратором напишите @ol_svit'] };
   }
 
   #handleNameStep(chatId, rawName) {
