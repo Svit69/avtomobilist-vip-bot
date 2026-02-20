@@ -21,7 +21,12 @@
 
   buildCartPayload(chatId) {
     const cart = this.#cartRepository.getCartByChatId(chatId);
-    if (!cart.items.length) return { text: 'Ваша корзина пока пуста.' };
+    if (!cart.items.length) {
+      return {
+        text: '<b>Ваша корзина пока пуста.</b>\n\nДля VIP-гостей доступна благотворительная коллекция. Если хотите сделать заказ, выберите набор из Благотворительного мерча.',
+        replyMarkup: { inline_keyboard: [[{ text: 'Благотворительный мерч', callback_data: 'charity_merch' }]] }
+      };
+    }
     const lines = cart.items.map((item, i) => `${i + 1}. ${item.title} (${item.quantity} шт) — от ${new Intl.NumberFormat('ru-RU').format(item.priceFrom)} ₽`);
     const total = cart.items.reduce((sum, item) => sum + item.priceFrom * item.quantity, 0);
     return { text: `Ваши покупки:\n${lines.join('\n')}\n\nОбщая сумма: от ${new Intl.NumberFormat('ru-RU').format(total)} ₽\n\nЕсли хотите удалить предметы из корзины, нажмите /delete`, replyMarkup: { inline_keyboard: [[{ text: 'заказать', callback_data: 'checkout_cart' }]] } };
