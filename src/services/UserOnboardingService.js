@@ -1,48 +1,24 @@
 ﻿const states = require('../constants/onboardingStates');
 
 class UserOnboardingService {
-  #storage;
+  #storage; #formatter; #namePolicyService; #loungeValidationService; #restaurantTableValidationService;
+  constructor(storage, formatter, namePolicyService, loungeValidationService, restaurantTableValidationService) { this.#storage = storage; this.#formatter = formatter; this.#namePolicyService = namePolicyService; this.#loungeValidationService = loungeValidationService; this.#restaurantTableValidationService = restaurantTableValidationService; }
 
-  #formatter;
-
-  #namePolicyService;
-
-  #loungeValidationService;
-
-  constructor(storage, formatter, namePolicyService, loungeValidationService) {
-    this.#storage = storage;
-    this.#formatter = formatter;
-    this.#namePolicyService = namePolicyService;
-    this.#loungeValidationService = loungeValidationService;
-  }
-
-  beginOnboardingForChat(chatId) {
-    this.#storage.saveByChatId(chatId, { step: states.WAITING_NAME });
-    return ['Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒', 'С моей помощью вы можете заказать благотворительный мерч на матче «Автомобилист» vs «Адмирал».', `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`];
-  }
+  beginOnboardingForChat(chatId) { this.#storage.saveByChatId(chatId, { step: states.WAITING_NAME }); return ['Привет! Я VIP-бот хоккейного клуба «Автомобилист» 🏒', 'С моей помощью вы можете заказать благотворительный мерч на матче «Автомобилист» vs «Адмирал».', `Давайте быстро зарегистрируемся:\n${this.#formatter.formatBold('Как вас зовут')}?`]; }
 
   handleOnboardingReply(chatId, inputText) {
-    const session = this.#storage.getByChatId(chatId);
-    if (!session || !session.step) return { messages: this.beginOnboardingForChat(chatId) };
-    if (session.step === states.WAITING_NAME) return this.#handleNameStep(chatId, inputText);
-    if (session.step === states.WAITING_LOUNGE) return this.#handleLoungeStep(chatId, inputText, session.name);
+    const s = this.#storage.getByChatId(chatId); if (!s || !s.step) return { messages: this.beginOnboardingForChat(chatId) };
+    if (s.step === states.WAITING_NAME) return this.#handleName(chatId, inputText);
+    if (s.step === states.WAITING_LOCATION_TYPE) return this.#handleLocationType(chatId, inputText, s.name);
+    if (s.step === states.WAITING_LOUNGE) return this.#handleLounge(chatId, inputText, s.name);
+    if (s.step === states.WAITING_RESTAURANT_TABLE) return this.#handleRestaurant(chatId, inputText, s.name);
     return { messages: ['Для связи с администратором напишите @ol_svit'] };
   }
 
-  #handleNameStep(chatId, rawName) {
-    const validationError = this.#namePolicyService.validateGuestName(rawName);
-    if (validationError) return { messages: [validationError, `${this.#formatter.formatBold('Как вас зовут')}?`] };
-    const name = rawName.trim();
-    this.#storage.saveByChatId(chatId, { step: states.WAITING_LOUNGE, name });
-    return { messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады видеть вас в VIP.`, 'Введите номер вашей VIP-ложи:\n• просто цифру от 1 до 44 (например: 3)\n• или в формате VIP 3'] };
-  }
-
-  #handleLoungeStep(chatId, rawLounge, name) {
-    const loungeValidation = this.#loungeValidationService.validateAndNormalizeLounge(rawLounge);
-    if (loungeValidation.error) return { messages: [loungeValidation.error] };
-    this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge: loungeValidation.value });
-    return { messages: [], completedProfile: { name, lounge: loungeValidation.value } };
-  }
+  #handleName(chatId, raw) { const e = this.#namePolicyService.validateGuestName(raw); if (e) return { messages: [e, `${this.#formatter.formatBold('Как вас зовут')}?`] }; const name = raw.trim(); this.#storage.saveByChatId(chatId, { step: states.WAITING_LOCATION_TYPE, name }); return { messages: [`Отлично, ${this.#formatter.formatBold(name)}! 👋\nРады приветствовать вас среди VIP-гостей.`, 'Пожалуйста, уточните, где вы находитесь:\n• VIP-ложа\n• Ресторан'] }; }
+  #handleLocationType(chatId, raw, name) { const v = String(raw || '').trim().toLowerCase(); if (v === 'vip-ложа' || v === 'vip ложа' || v === 'ложа') { this.#storage.saveByChatId(chatId, { step: states.WAITING_LOUNGE, locationType: 'VIP_LOUNGE' }); return { messages: ['Введите номер вашей VIP-ложи:\n• просто цифру от 1 до 44 (например: 3)\n• или в формате VIP 3'] }; } if (v === 'ресторан') { this.#storage.saveByChatId(chatId, { step: states.WAITING_RESTAURANT_TABLE, locationType: 'RESTAURANT' }); return { messages: ['Подскажите, пожалуйста, номер вашего стола в ресторане (от 1 до 25).'] }; } return { messages: ['Пожалуйста, выберите один из вариантов: VIP-ложа или Ресторан.'] }; }
+  #handleLounge(chatId, raw, name) { const r = this.#loungeValidationService.validateAndNormalizeLounge(raw); if (r.error) return { messages: [r.error] }; this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge: r.value }); return { messages: [], completedProfile: { name, lounge: r.value } }; }
+  #handleRestaurant(chatId, raw, name) { const r = this.#restaurantTableValidationService.validateAndNormalizeTable(raw); if (r.error) return { messages: [r.error] }; const location = `Ресторан, стол ${r.value}`; this.#storage.saveByChatId(chatId, { step: states.COMPLETED, lounge: location }); return { messages: [], completedProfile: { name, lounge: location } }; }
 }
 
 module.exports = UserOnboardingService;
