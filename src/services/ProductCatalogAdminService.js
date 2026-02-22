@@ -13,6 +13,8 @@
     return this.#repository.getAllProducts().map(item => [{ text: `#${item.id} ${item.title} (${item.quantity} шт)`, callback_data: `admin_qty_select:${item.id}` }]);
   }
 
+  getProductById(id) { return this.#repository.getProductById(id); }
+  getProductIds() { return this.#repository.getAllProducts().map(item => item.id); }
   addProduct(input) { return this.#repository.addProduct(input); }
   editProduct(id, input) { return this.#repository.updateProductById(id, input); }
   removeProduct(id) { return this.#repository.deleteProductById(id); }
