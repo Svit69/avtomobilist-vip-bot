@@ -44,7 +44,7 @@ class VipTelegramBot {
   async #sendAdminResponse(chatId, response) { await this.#bot.sendMessage(chatId, response.text, { parse_mode: 'HTML', ...(response.replyMarkup ? { reply_markup: response.replyMarkup } : {}) }); }
   async #sendGuestMenu(chatId, profile) { const offer = this.#guestMenuService.buildCharityMerchOffer(profile, chatId === this.#adminId); await this.#bot.sendMessage(chatId, offer.text, { parse_mode: 'HTML', reply_markup: offer.replyMarkup }); }
   async #notifyAdmin(chatId, profile) { await this.#sendFormattedMessage(this.#adminId, `Новая регистрация:\nID: ${chatId}\nИмя: ${profile.name}\nЛожа: ${profile.lounge}`); }
-  async #sendMessages(chatId, messages) { for (const text of messages) await this.#sendFormattedMessage(chatId, text); }
-  async #sendFormattedMessage(chatId, text) { await this.#bot.sendMessage(chatId, text, { parse_mode: 'HTML' }); }
+  async #sendMessages(chatId, messages) { for (const m of messages) await this.#sendFormattedMessage(chatId, m); }
+  async #sendFormattedMessage(chatId, message) { const p = typeof message === 'string' ? { text: message } : message; await this.#bot.sendMessage(chatId, p.text, { parse_mode: 'HTML', ...(p.replyMarkup ? { reply_markup: p.replyMarkup } : {}) }); }
 }
 module.exports = VipTelegramBot;
